@@ -1,0 +1,25 @@
+{
+  "name": "8004-aggregator",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "api",
+    "ingestion",
+    "trust-engine",
+    "score-calculator",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm -ws run build",
+    "dev:api": "npm -w @8004/api run dev",
+    "dev:ingestion": "npm -w @8004/ingestion run dev",
+    "dev:trust": "npm -w @8004/trust-engine run dev",
+    "dev:score": "npm -w @8004/score-calculator run dev"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}
+

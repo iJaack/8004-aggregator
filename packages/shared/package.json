@@ -1,0 +1,21 @@
+{
+  "name": "@8004/shared",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "db:migrate": "tsx src/db/migrate.ts"
+  },
+  "dependencies": {
+    "@noble/hashes": "^1.8.0",
+    "dotenv": "^16.6.1",
+    "pg": "^8.16.3"
+  }
+}
+

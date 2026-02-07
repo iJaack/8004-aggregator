@@ -1,0 +1,83 @@
+version: "3.8"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgres://user:pass@postgres:5432/aggregator
+      - REDIS_URL=redis://redis:6379
+      - API_PORT=3000
+      - TRUST_MIN_SCORE=${TRUST_MIN_SCORE:-60}
+      # Used to expand legacy "chainId:tokenId" agent IDs into canonical ERC-8004 IDs.
+      - IDENTITY_REGISTRY_ADDRESS=${IDENTITY_REGISTRY_ADDRESS:-0x8004A818BFB912233c491871b3d84c89A494BD9e}
+    depends_on:
+      - postgres
+      - redis
+
+  ingestion:
+    build:
+      context: .
+      dockerfile: ingestion/Dockerfile
+    environment:
+      - DATABASE_URL=postgres://user:pass@postgres:5432/aggregator
+      - REDIS_URL=redis://redis:6379
+      - POLL_INTERVAL_MS=${POLL_INTERVAL_MS:-30000}
+      - CHAIN_ID=${CHAIN_ID:-43113}
+      - RPC_URL=${RPC_URL:-https://api.avax-test.network/ext/bc/C/rpc}
+      - IDENTITY_REGISTRY_ADDRESS=${IDENTITY_REGISTRY_ADDRESS:-0x8004A818BFB912233c491871b3d84c89A494BD9e}
+      - REPUTATION_REGISTRY_ADDRESS=${REPUTATION_REGISTRY_ADDRESS:-0x8004B663056A597Dffe9eCcC1965A193B7388713}
+      - INGEST_FROM_BLOCK=${INGEST_FROM_BLOCK:-51544615}
+      - INGEST_LOG_CHUNK_BLOCKS=${INGEST_LOG_CHUNK_BLOCKS:-5000}
+      - INGEST_CONFIRMATIONS=${INGEST_CONFIRMATIONS:-3}
+      - IPFS_GATEWAY=${IPFS_GATEWAY:-https://gateway.pinata.cloud}
+    depends_on:
+      - postgres
+      - redis
+
+  trust-engine:
+    build:
+      context: .
+      dockerfile: trust-engine/Dockerfile
+    environment:
+      - DATABASE_URL=postgres://user:pass@postgres:5432/aggregator
+      - WATCHTOWER_ALLOWLIST=${WATCHTOWER_ALLOWLIST}
+    depends_on:
+      - postgres
+
+  score-calculator:
+    build:
+      context: .
+      dockerfile: score-calculator/Dockerfile
+    environment:
+      - DATABASE_URL=postgres://user:pass@postgres:5432/aggregator
+      - TRUST_MIN_SCORE=${TRUST_MIN_SCORE:-60}
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:15
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Auto-initialize schema on first boot (fresh volume).
+      - "./db/schema.sql:/docker-entrypoint-initdb.d/001-schema.sql:ro"
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=pass
+      - POSTGRES_DB=aggregator
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:
