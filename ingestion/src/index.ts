@@ -390,7 +390,7 @@ async function fetchEvents(client: PublicClient, fromBlock: bigint, toBlock: big
         const decoded = decodeEventLog({
           abi: [evAbi],
           data: l.data as `0x${string}`,
-          topics: l.topics as `0x${string}`[],
+          topics: l.topics as [] | [signature: `0x${string}`, ...`0x${string}`[]],
         }) as { eventName: string; args: Record<string, unknown> };
 
         if (decoded.eventName !== "NewFeedback") continue;
@@ -443,7 +443,7 @@ async function fetchEvents(client: PublicClient, fromBlock: bigint, toBlock: big
         const decoded = decodeEventLog({
           abi: [evAbi],
           data: l.data as `0x${string}`,
-          topics: l.topics as `0x${string}`[],
+          topics: l.topics as [] | [signature: `0x${string}`, ...`0x${string}`[]],
         }) as { eventName: string; args: Record<string, unknown> };
 
         if (decoded.eventName !== "FeedbackRevoked") continue;
